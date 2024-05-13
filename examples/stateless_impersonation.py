@@ -7,9 +7,9 @@ from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
-
+from mdb import dbConnect
 from imia import APIKeyAuthenticator, AuthenticationMiddleware, ImpersonationMiddleware, InMemoryProvider, LoginManager
-
+from users import User
 
 @dataclass
 class User:
@@ -29,7 +29,12 @@ class User:
     def get_id(self) -> str:
         return self.identifier
 
-    def get_hashed_password(self) -> str:
+    def get_hashed_password(self, user) -> str:
+        uu = User.validate_user(user)
+        if uu == True:
+            query = {"reg_data.userId": uu}
+        fil = {"_id": 0, "reg_data.password": 1}
+        userCol.find_one(query,fil)
         return self.password
 
     def get_scopes(self) -> list:
