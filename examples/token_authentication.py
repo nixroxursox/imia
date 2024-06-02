@@ -42,19 +42,20 @@ user_provider = InMemoryProvider({'root@localhost': User(scopes=['auth:impersona
 """The class that looks up for a user. you may provide your own for, eg. database user lookup"""
 
 
-def whoami_view(request: Request) -> JSONResponse:
+async def whoami_view(request: Request) -> JSONResponse:
     """
     curl -H 'Authorization: Bearer root@localhost'  http://localhost:7000/
 
     token, id and email is the same for this example and equals to
     "root@localhost"
     """
-    return JSONResponse(
+    view = await JSONResponse(
         {
             'id': request.auth.user_id,
             'name': request.auth.display_name,
         }
     )
+    return view
 
 
 app = Starlette(
