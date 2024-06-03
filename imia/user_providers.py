@@ -39,8 +39,8 @@ class InMemoryProvider(UserProvider):
     async def find_by_id(self, connection: HTTPConnection, identifier: str) -> typing.Optional[UserLike]:
         return self.user_map.get(identifier)
 
-    async def find_by_username(self, connection: HTTPConnection, username_or_email: str) -> typing.Optional[UserLike]:
-        return self.user_map.get(username_or_email)
+    async def find_by_username(self, connection: HTTPConnection, username: str) -> typing.Optional[UserLike]:
+        return await super().find_by_username(connection, username)
 
     async def find_by_token(self, connection: HTTPConnection, token: str) -> typing.Optional[UserLike]:
         return self.user_map.get(token)
