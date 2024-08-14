@@ -10,17 +10,17 @@ from .protocols import LoginGuard, PasswordVerifier, UserLike
 from .user_providers import UserProvider
 from .user_token import AnonymousUser, LoginState, UserToken
 
-SESSION_KEY = '_auth_user_id'
-SESSION_HASH = '_auth_user_hash'
-HASHING_ALGORITHM = 'sha1'
+session_key = '_auth_user_id'
+session_hash = '_auth_user_hash'
+HASHING_ALGORITHM = 'blake2b'
 
 
 def get_session_auth_id(connection: HTTPConnection) -> typing.Optional[str]:
-    return connection.session.get(SESSION_KEY)
+    return connection.session.get(session_key)
 
 
 def get_session_auth_hash(connection: HTTPConnection) -> typing.Optional[str]:
-    return connection.session.get(SESSION_HASH)
+    return connection.session.get(session_hash)
 
 
 def _get_password_hmac_from_user(user: UserLike, secret: str) -> str:
@@ -41,10 +41,10 @@ def _check_for_other_user_session(connection: HTTPConnection, user: UserLike, us
         * if session hash is not the same as hash for user's password then we clearly reusing other's session.
     """
     session_auth_hmac = get_session_auth_hash(connection)
-    if SESSION_KEY in connection.session and any(
+    if session_key in connection.session and any(
         [
             # if we have other user id in the session
-            connection.session[SESSION_KEY] != str(user.get_id()),
+            connection.session[session_key] != str(user.get_id()),
             # and session has previously set hash, and hashes are not equal
             session_auth_hmac and not secrets.compare_digest(session_auth_hmac, user_password_hmac),
         ]
@@ -64,10 +64,9 @@ async def login_user(request: HTTPConnection, user: UserLike, secret_key: str) -
         if hasattr(request.session, 'regenerate_id'):
             # if session implements `def regenerate_id(self) -> str` then call it
             await request.session.regenerate_id()  # type: ignore
-
     user_token = UserToken(user=user, state=LoginState.FRESH)
-    request.session[SESSION_KEY] = user.get_id()
-    request.session[SESSION_HASH] = user_password_hmac
+    request.session[session_key] = user.get_id()
+    request.session[session_hash] = user_password_hmac
     request.scope['auth'] = user_token
     return user_token
 
